@@ -1,6 +1,16 @@
 #include <omp.h>
 #include <math.h>
 #include <iostream>
+#include <fstream>
+
+void print_matrix(int nx, int ny, double *v) {
+    for(int y=0; y<=ny; y++){
+        for(int x=0; x<=nx; x++){
+            std::cout << v[y*(nx+1)+x] << " ";
+            }
+        std::cout << std::endl;
+    }
+}
 
 
 void initialize(int nx, int ny, double *v, double hx){
@@ -9,13 +19,13 @@ double sinhyb = sinh(2*M_PI);
 for(int y=0; y<=ny; y++){
     for(int x=0; x<=nx; x++){
         if(y==ny){
-            v[y*(ny+1)+x]=sin(2*M_PI*x*hx)*sinhyb;
+            v[y*(nx+1)+x]=sin(2*M_PI*x*hx)*sinhyb;
         }else{
-            v[y*(ny+1)+x]= 0;
+            v[y*(nx+1)+x]= 0;
         }       
     }
 }
-
+print_matrix(nx, ny, v);
 }
 
 
@@ -31,7 +41,7 @@ int c = atoi(argv[3]); // number of iterations
 
 if (argc > 4) {
     int threads = atoi(argv[4]); // number of threads omp shall use
-    omp_set_num_threads(threads);
+    //omp_set_num_threads(threads);
 }
 
 
@@ -50,7 +60,7 @@ initialize(nx, ny, values, hx);
 double hx_squared = hx*hx;
 double hy_squared = hy*hy;
 double pi_squared = M_PI*M_PI;
-double factor = 2/hx_squared + 2/hy_squared + 4*pi_squared;
+double factor = 1/(2/hx_squared + 2/hy_squared + 4*pi_squared);
 double xFactor = -1/hx_squared;
 double yFactor = -1/hy_squared;
 
@@ -58,9 +68,11 @@ double f_xy;
 
 for (int iteration = 0; iteration < c; ++iteration) {
     int rowlength = ny+1;
-    //pragma omp parallel for
+    //#pragma omp parallel for
     for (int row = 1; row < ny; ++row) { // row is y col is x
         f_xy = 4*pi_squared*sinh(2*M_PI*(row-1)*hy);
+        //int carry = 0; 
+        //if threadnum ungerade (ungerade row) -> carry = 1;
         for (int col = 1; col < nx; ++col) {    // nicht ueber Rand iterieren
             if ((row+col)%2  == 0) {
                 // RED
@@ -84,5 +96,13 @@ for (int iteration = 0; iteration < c; ++iteration) {
         }
     }
 }
+std::cout << std::endl << "Solution:" << std::endl;
+print_matrix(nx, ny, values);
+
+std::ofstream fileO ("solution.txt");
+    for(int i = 0; i<((nx+1)*(ny+1)); ++i) {
+        fileO << values[i] << "\n";
+    }
+    fileO.close();
 
 }    
