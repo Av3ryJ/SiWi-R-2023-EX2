@@ -16,10 +16,10 @@ void print_matrix(int nx, int ny, double *v) {
 void initialize(int nx, int ny, double *v, double hx){
 double sinhyb = sinh(2*M_PI);
 #pragma omp parallel for
-for(int y=0; y<=ny; y++){
-    for(int x=0; x<=nx; x++){
+for(int y=0; y<=ny; ++y){
+    for(int x=0; x<=nx; ++x){
         if(y==ny){
-            v[y*(nx+1)+x]=sin(2*M_PI*x*hx)*sinhyb;
+            v[y*(nx+1)+x]= sin(2*M_PI*x*hx)*sinhyb;
         }else{
             v[y*(nx+1)+x]= 0;
         }       
@@ -60,35 +60,37 @@ initialize(nx, ny, values, hx);
 double hx_squared = hx*hx;
 double hy_squared = hy*hy;
 double pi_squared = M_PI*M_PI;
-double factor = 1/(2/hx_squared + 2/hy_squared + 4*pi_squared);
-double xFactor = -1/hx_squared;
-double yFactor = -1/hy_squared;
+double factor = 1*(2/hx_squared + 2/hy_squared + 4*pi_squared);
+double xFactor = -1*hx_squared;
+double yFactor = -1*hy_squared;
 
 double f_xy;
 
 for (int iteration = 0; iteration < c; ++iteration) {
-    int rowlength = ny+1;
+    int rowlength = nx+1;
     //#pragma omp parallel for
     for (int row = 1; row < ny; ++row) { // row is y col is x
-        f_xy = 4*pi_squared*sinh(2*M_PI*(row-1)*hy);
+        f_xy = 4*pi_squared*sinh(2*M_PI*row*hy);
         for (int col = 1; col < nx; ++col) {    // nicht ueber Rand iterieren
             if ((row+col)%2  == 0) {
                 // RED
-                values[col + row*rowlength] = xFactor*(values[(col-1) + row*rowlength]+values[(col+1) + row*rowlength]) +
-                                              yFactor*(values[col + (row-1)*rowlength] + values[col + (row+1)*rowlength]) +
-                                              factor *(values[col + row*rowlength]);
+                //std::cout << "RED" << std::endl;
+                values[col + row*rowlength] = 1.0/4 * ((hx*hy*f_xy*sin(2*M_PI*col*hx))+
+                        (values[(col-1) + row*rowlength]+values[(col+1) + row*rowlength]+values[col + (row-1)*rowlength]+values[col + (row+1)*rowlength]));
             }
         }
     }
 
     //pragma omp parallel for
     for (int row = 1; row < ny; ++row) { // row is y col is x
+        f_xy = 4*pi_squared*sinh(2*M_PI*row*hy);
         for (int col = 1; col < nx; ++col) {    // nicht ueber Rand iterieren
             if ((row+col)%2  == 1) {
                 // BLACK
-                values[col + row*rowlength] = xFactor*(values[(col-1) + row*rowlength]+values[(col+1) + row*rowlength]) +
-                                              yFactor*(values[col + (row-1)*rowlength] + values[col + (row+1)*rowlength]) +
-                                              factor *(values[col + row*rowlength]);
+                //std::cout << "BLACK" << std::endl;
+                //std::cout << col+row*rowlength << std::endl;
+                values[col + row*rowlength] = 1.0/4 * ((hx*hy*f_xy*sin(2*M_PI*col*hx))+
+                                                       (values[(col-1) + row*rowlength]+values[(col+1) + row*rowlength]+values[col + (row-1)*rowlength]+values[col + (row+1)*rowlength]));
             }
         }
     }
