@@ -2,6 +2,7 @@
 #include <math.h>
 #include <iostream>
 #include <fstream>
+#include "Timer.h"
 
 void print_matrix(int nx, int ny, double *v) {
     for(int y=0; y<=ny; y++){
@@ -65,7 +66,8 @@ for(int y=0; y<=ny; y++){
         func[y*(nx+1)+x]= 4*pi_squared*sin(2*M_PI*x*hx)*sinh(2*M_PI*y*hy); 
     }
 }
-// ab hier timen 
+
+//ab hier timen
 
 for (int iteration = 0; iteration < c; ++iteration) {
     int rowlength = nx+1;

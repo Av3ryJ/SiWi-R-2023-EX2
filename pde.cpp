@@ -39,11 +39,12 @@ int nx = atoi(argv[1]); // number of intervalls in x-directon
 int ny = atoi(argv[2]); // number of intervalls in y-directon
 int c = atoi(argv[3]); // number of iterations
 
-if (argc > 4) {
+/*if (argc > 4) {
     int threads = atoi(argv[4]); // number of threads omp shall use
     //omp_set_num_threads(threads);
 }
 
+*/
 
 double *values = new double[(nx+1)*(ny+1)];
 // nx und ny gibt Anzahl der Intervalle an, die entstehen -> es gibt nx+1 & ny+1 Punkte in jede Richtung

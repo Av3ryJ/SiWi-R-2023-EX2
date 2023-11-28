@@ -1,10 +1,5 @@
-all: numa numa_fixed
+all: rbgs
 
-numa: numa.cpp
-	g++ -std=c++11 -O3 -fopenmp -Wall numa.cpp -o numa
+rbgs: rbgs.cpp
+	g++ -std=c++17 -Wall -Wextra -Wshadow -Werror -fopenmp -O3 -DNDEBUG rbgs.cpp -o rbgs
 
-numa_fixed: numa_fixed.cpp
-	g++ -std=c++11 -O3 -fopenmp -Wall numa_fixed.cpp -o numa_fixed
-
-clean:
-	rm -f numa_fixed numa
