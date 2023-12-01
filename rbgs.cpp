@@ -15,18 +15,17 @@ void print_matrix(int nx, int ny, double *v) {
 
 
 void initialize(int nx, int ny, double *v, double hx){
-double sinhyb = sinh(2*M_PI);
-#pragma omp parallel for
-for(int y=0; y<=ny; ++y){
-    for(int x=0; x<=nx; ++x){
-        if(y==ny){
-            v[y*(nx+1)+x]= sin(2*M_PI*x*hx)*sinhyb;
-        }else{
-            v[y*(nx+1)+x]= 0;
-        }       
+    double sinhyb = sinh(2*M_PI);
+    #pragma omp parallel for
+    for(int y=0; y<=ny; ++y){
+        for(int x=0; x<=nx; ++x){
+            if(y==ny){
+                v[y*(nx+1)+x]= sin(2*M_PI*x*hx)*sinhyb;
+            }else{
+                v[y*(nx+1)+x]= 0;
+            }
+        }
     }
-}
-print_matrix(nx, ny, v);
 }
 
 double calculateResidual(double* values, double* f, int nx, int ny) {
@@ -54,7 +53,7 @@ int c = atoi(argv[3]); // number of iterations
 
 if (argc > 4) {
     int threads = atoi(argv[4]); // number of threads omp shall use
-    //omp_set_num_threads(threads);
+    omp_set_num_threads(threads);
 }
 
 
@@ -80,10 +79,12 @@ for(int y=0; y<=ny; y++){
 }
 
 //ab hier timen
+double time = 100.0;
+siwir::Timer timer;
 
 for (int iteration = 0; iteration < c; ++iteration) {
     int rowlength = nx+1;
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for (int row = 1; row < ny; ++row) { // row is y col is x
         for (int col = 1; col < nx; ++col) {    // nicht ueber Rand iterieren
             if ((row+col)%2  == 0) {
@@ -98,10 +99,9 @@ for (int iteration = 0; iteration < c; ++iteration) {
             }
         }
     }
-    
-    
 
-    //pragma omp parallel for
+
+    #pragma omp parallel for
     for (int row = 1; row < ny; ++row) { // row is y col is x
         for (int col = 1; col < nx; ++col) {    // nicht ueber Rand iterieren
             if ((row+col)%2  == 1) {
@@ -118,8 +118,9 @@ for (int iteration = 0; iteration < c; ++iteration) {
         }
     }
 }
-std::cout << std::endl << "Solution:" << std::endl;
-print_matrix(nx, ny, values);
+
+time = std::min(time, timer.elapsed());
+std::cout << time << std::endl;
 
 double residual = calculateResidual(values, func, nx+1, ny+1);
 std::cout << std::endl << " Residual = " << residual << std::endl;
@@ -129,5 +130,4 @@ std::ofstream fileO ("solution.txt");
         fileO << values[i] << "\n";
     }
     fileO.close();
-
 }    
