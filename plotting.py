@@ -22,10 +22,11 @@ def get_array_for_size(size: int):
 def plot_all():
     for size in sizes_to_time:
         times = get_array_for_size(size)
-        plt.plot(thread_numbers, times, label=f"{size}")
+        plt.plot(thread_numbers, times[0]/np.array(times), label=f"{size}")
 
+    plt.title("Speedup for different sizes and threads")
     plt.xlabel("Number of threads")
-    plt.ylabel("Runtime in seconds")
+    plt.ylabel("Speedup")
     plt.legend(loc="upper left")
     plt.show()
 
