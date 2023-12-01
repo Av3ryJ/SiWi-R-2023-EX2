@@ -1,8 +1,6 @@
 import subprocess
 import os.path as p
 import json
-import matplotlib.pyplot as plt
-import numpy as np
 
 binary = "./rbgs.exe"
 thread_numbers = [1, 2, 5, 10, 15, 20]
