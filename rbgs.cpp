@@ -123,11 +123,19 @@ time = std::min(time, timer.elapsed());
 std::cout << time << std::endl;
 
 double residual = calculateResidual(values, func, nx+1, ny+1);
-std::cout << std::endl << " Residual = " << residual << std::endl;
+std::cout << std::endl << "Residual = " << residual << std::endl;
 
 std::ofstream fileO ("solution.txt");
+/*
     for(int i = 0; i<((nx+1)*(ny+1)); ++i) {
         fileO << values[i] << "\n";
+    }
+    fileO.close();*/
+
+    for (int col = 0; col < nx+1; col++) {
+        for (int row = 0; row < ny+1; row++) {
+            fileO << col << " " << row << " " << values[row*(nx+1) + col] << std::endl;
+        }
     }
     fileO.close();
 }    
