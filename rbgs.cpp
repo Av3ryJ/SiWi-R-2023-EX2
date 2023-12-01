@@ -29,6 +29,18 @@ for(int y=0; y<=ny; ++y){
 print_matrix(nx, ny, v);
 }
 
+double calculateResidual(double* values, double* f, int nx, int ny) {
+    double factor = 1.0/sqrt((nx-2)*(ny-2));
+    double sum = 0;
+    for (int row = 1; row < ny-1; row++) {
+        for (int col = 1; col < nx-1; col++) {
+            double residual = f[row*nx + col] - values[row*nx + col];
+            sum += residual*residual;
+        }
+    }
+    return factor*sqrt(sum);
+}
+
 
 int main(int argc, char* argv[]){
 
@@ -108,6 +120,9 @@ for (int iteration = 0; iteration < c; ++iteration) {
 }
 std::cout << std::endl << "Solution:" << std::endl;
 print_matrix(nx, ny, values);
+
+double residual = calculateResidual(values, func, nx+1, ny+1);
+std::cout << std::endl << " Residual = " << residual << std::endl;
 
 std::ofstream fileO ("solution.txt");
     for(int i = 0; i<((nx+1)*(ny+1)); ++i) {
