@@ -28,12 +28,16 @@ void initialize(int nx, int ny, double *v, double hx){
     }
 }
 
-double calculateResidual(double* values, double* f, int nx, int ny) {
+double calculateResidual(double* values, double* f, int nx, int ny, double alpha, double beta, double gamma,int rowlength ) {
     double factor = 1.0/sqrt((nx-2)*(ny-2));
     double sum = 0;
     for (int row = 1; row < ny-1; row++) {
         for (int col = 1; col < nx-1; col++) {
-            double residual = f[row*nx + col] - values[row*nx + col];
+            double residual = f[row*nx + col] - alpha*values[row*nx + col]
+                            +gamma*values[(col-1) + row*rowlength]
+                            +gamma*values[(col+1) + row*rowlength]
+                            +beta*values[col + (row-1)*rowlength]
+                            +beta* values[col + (row+1)*rowlength];;
             sum += residual*residual;
         }
     }
@@ -68,7 +72,7 @@ double pi_squared = M_PI*M_PI;
 double alpha = 2/hx_squared + 2/hy_squared + 4*pi_squared;
 double beta = 1/hx_squared;
 double gamma = 1/hy_squared;
-
+int rowlength = nx+1;
 initialize(nx, ny, values, hx);
 
 // einmal ein Array für alle Funktionswerte von f berechnen und danach nur noch rauslesen:
@@ -83,8 +87,7 @@ double time = 100.0;
 siwir::Timer timer;
 
 for (int iteration = 0; iteration < c; ++iteration) {
-    int rowlength = nx+1;
-    #pragma omp parallel for
+#pragma omp parallel for
     for (int row = 1; row < ny; ++row) { // row is y col is x
         for (int col = 1; col < nx; ++col) {    // nicht ueber Rand iterieren
             if ((row+col)%2  == 0) {
@@ -100,7 +103,7 @@ for (int iteration = 0; iteration < c; ++iteration) {
         }
     }
 
-
+// statisch scheduling 
     #pragma omp parallel for
     for (int row = 1; row < ny; ++row) { // row is y col is x
         for (int col = 1; col < nx; ++col) {    // nicht ueber Rand iterieren
@@ -122,19 +125,22 @@ for (int iteration = 0; iteration < c; ++iteration) {
 time = std::min(time, timer.elapsed());
 std::cout << time << std::endl;
 
-double residual = calculateResidual(values, func, nx+1, ny+1);
+double residual = calculateResidual(values, func, nx+1, ny+1, alpha, beta, gamma, rowlength);
 std::cout << std::endl << "Residual = " << residual << std::endl;
 
-std::ofstream fileO ("solution.txt");
-/*
-    for(int i = 0; i<((nx+1)*(ny+1)); ++i) {
-        fileO << values[i] << "\n";
-    }
-    fileO.close();*/
 
+
+// fuer gnuplot muss das so aussehen --> Funktion schreiben, die solution.txt so schreibt
+// # x y u(x,y)
+//  0 0 0 
+// .. .. .. 
+
+//x und y Werte müssen in dem definierten Bereich liegen -> [0,1] und[0,2]
+std::ofstream fileO ("solution.txt");
+    fileO << "# x y u(x,y)"<< std::endl;
     for (int col = 0; col < nx+1; col++) {
         for (int row = 0; row < ny+1; row++) {
-            fileO << col << " " << row << " " << values[row*(nx+1) + col] << std::endl;
+           fileO << col*hx << " " << row*hy << " " << values[row*(nx+1) + col] << std::endl;
         }
     }
     fileO.close();
