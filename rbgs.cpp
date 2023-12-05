@@ -4,6 +4,8 @@
 #include <fstream>
 #include "Timer.h"
 
+
+//Ausgabe der Matrix zur Überprüfung
 void print_matrix(int nx, int ny, double *v) {
     for(int y=0; y<=ny; y++){
         for(int x=0; x<=nx; x++){
@@ -13,7 +15,7 @@ void print_matrix(int nx, int ny, double *v) {
     }
 }
 
-
+// Initialisieren der Matrix
 void initialize(int nx, int ny, double *v, double hx){
     double sinhyb = sinh(2*M_PI);
     #pragma omp parallel for
@@ -28,6 +30,9 @@ void initialize(int nx, int ny, double *v, double hx){
     }
 }
 
+// Berechnung der L2-Norm des Residuums
+// Residuum = Abweichung der angenäherten Lösung von den "richtigen" Funktionswerten 
+// Norm = Wurzel aus summierten, quadrierten Residuuen der einzelnen Punkte durch Anzahl aller inneren Punkte
 double calculateResidual(double* values, double* f, int nx, int ny, double alpha, double beta, double gamma,int rowlength ) {
     double factor = 1.0/sqrt((nx-2)*(ny-2));
     double sum = 0;
@@ -60,19 +65,26 @@ if (argc > 4) {
     omp_set_num_threads(threads);
 }
 
-
+// Array mit angenäherten Werten 
 double *values = new double[(nx+1)*(ny+1)];
+
+// richtige Funktionswerte
 double *func= new double[(nx+1)*(ny+1)];
+
 // nx und ny gibt Anzahl der Intervalle an, die entstehen -> es gibt nx+1 & ny+1 Punkte in jede Richtung
 double hx = 2.0/nx; // lenght of one intervall in x-direction
 double hy = 1.0/ny; // lenght of one intervall in y-direction
 double hx_squared = hx*hx;
 double hy_squared = hy*hy;
 double pi_squared = M_PI*M_PI;
+int rowlength = nx+1;
+
+//Vorfaktoren der Diskretisierung
 double alpha = 2/hx_squared + 2/hy_squared + 4*pi_squared;
 double beta = 1/hx_squared;
 double gamma = 1/hy_squared;
-int rowlength = nx+1;
+
+//Array mit Randwerten/Anfangswerten initialisieren
 initialize(nx, ny, values, hx);
 
 // einmal ein Array für alle Funktionswerte von f berechnen und danach nur noch rauslesen:
@@ -82,7 +94,7 @@ for(int y=0; y<=ny; y++){
     }
 }
 
-//ab hier timen
+//Timing start
 double time = 100.0;
 siwir::Timer timer;
 
@@ -103,14 +115,12 @@ for (int iteration = 0; iteration < c; ++iteration) {
         }
     }
 
-// statisch scheduling 
     #pragma omp parallel for
     for (int row = 1; row < ny; ++row) { // row is y col is x
         for (int col = 1; col < nx; ++col) {    // nicht ueber Rand iterieren
             if ((row+col)%2  == 1) {
                 // BLACK
                 //std::cout << "BLACK" << std::endl;
-                //std::cout << col+row*rowlength << std::endl;
                 values[col + row*rowlength] = (1/alpha)*
                         (func[col+row*rowlength]
                         +gamma*values[(col-1) + row*rowlength]
@@ -121,12 +131,13 @@ for (int iteration = 0; iteration < c; ++iteration) {
         }
     }
 }
-
+//Timing stoppen & ausgeben
 time = std::min(time, timer.elapsed());
 std::cout << time << std::endl;
 
+//Norm berechnen
 double residual = calculateResidual(values, func, nx+1, ny+1, alpha, beta, gamma, rowlength);
-std::cout << std::endl << "Residual = " << residual << std::endl;
+std::cout << std::endl << "L2 Norm of the residual = " << residual << std::endl;
 
 
 

@@ -1,41 +1,12 @@
-# Teaching_Code
-## NUMA
-This code snippet should demonstrate the problem that can arise with NUMA architectures.
-Likwid can be used to pin the program and ensure the expected results (module load likwid).
-Be sure to adjust the core ids to the specific architecture the program is running on.
-For Meggie, the core ids are fine.
-Consider allocating a node in an interactive job to get reliable results.
+# Red-Black-Gauss-Seidel
+### Aufruf
+Aufruf ./rbgs nx ny c th
+mit nx= Anzahl der Intervalle in x-Richtung
+    ny= Anzahl der Intervalle in y-Richtung
+    c= Anzahl der Iterationen 
+    th= Anzahl der Threads für OpenMp Parallelisierunng --> ist optional, wenn keine Threadanzahl übergeben wird, nimmt der Compiler zur Berechnung automatisch alle Threads,die ihm zur Verfügung stehen 
 
----
-```bash
-make
-likwid-pin -c 0,10 ./numa
-```
 
-If you run the numa program and pin it to different cores it should print out different runtimes for the two threads.
-This results in the fact that both vectors are allocated on the same NUMA domain.
+Es entsteht eine Ausgabe Datei solution.txt, in der die jeweiligen Werte für jede Stelle (x,y) in der Matrix stehen und auf der Kommandozeile sieht man zum einen die Laufzeit der Berechnung in Sekunden und die L2 Norm des Residuums
 
-possible output:
-```bash
-Thread: 0 on CPU: 0; Time (ms): 288
-Thread: 1 on CPU: 10; Time (ms): 197
-```
 
----
-
-```bash
-make
-likwid-pin -c 0,1 ./numa
-```
-
-However if you pin the program on the same socket you should see the same runtimes
-
-possible output:
-```bash
-Thread: 0 on CPU: 0; Time (ms): 185
-Thread: 1 on CPU: 1; Time (ms): 189
-```
----
-
-`numa_fixed.cpp` shows one possible solution to the NUMA problem.
-By resizing the vector it will be newly allocated and is therefore located in the domain of the corresponding thread
