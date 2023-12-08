@@ -99,7 +99,7 @@ double time = 100.0;
 siwir::Timer timer;
 
 for (int iteration = 0; iteration < c; ++iteration) {
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int row = 1; row < ny; ++row) { // row is y col is x
         for (int col = 1; col < nx; ++col) {    // nicht ueber Rand iterieren
             if ((row+col)%2  == 0) {
@@ -133,7 +133,7 @@ for (int iteration = 0; iteration < c; ++iteration) {
 }
 //Timing stoppen & ausgeben
 time = std::min(time, timer.elapsed());
-std::cout << time << std::endl;
+std::cout << "Runtime in seconds: " << time << std::endl;
 
 //Norm berechnen
 double residual = calculateResidual(values, func, nx+1, ny+1, alpha, beta, gamma, rowlength);
